@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,11 +18,11 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">Techno street sign trainer</p>
+          <p class="eyebrow">Techno verkeersborden trainer</p>
           <h1>Techno Signs</h1>
           <p class="hero-text">
-            Steer falling Dutch street signs into the lane with the correct
-            meaning before the beat drops again.
+            Leer Nederlandse verkeersborden door het juiste bord naar de juiste
+            betekenis te sturen.
           </p>
         </div>
 
@@ -54,72 +54,60 @@
         </div>
       </header>
 
-      <main class="layout">
+      <main class="game-layout">
         <section class="game-panel">
           <div class="stage-frame">
             <canvas
               id="game-canvas"
-              width="1080"
-              height="1440"
+              width="1440"
+              height="900"
               aria-label="Game board"
             ></canvas>
 
             <div class="overlay-top">
-              <div class="chip">Keyboard: A/D or arrows</div>
-              <div class="chip">Tap a lane on mobile</div>
+              <div class="chip">Toetsenbord: A/D of pijltjes</div>
+              <div class="chip">Tik op een betekenis op mobiel</div>
             </div>
 
             <div class="overlay-bottom">
-              <div id="feedback" class="feedback">Press start to begin.</div>
+              <div id="feedback" class="feedback">Druk op start om te beginnen.</div>
             </div>
           </div>
 
-          <div class="controls-row">
-            <button id="start-button" class="primary-button" type="button">
-              Start game
-            </button>
-            <button id="pause-button" class="ghost-button" type="button">
-              Pause
-            </button>
-            <button id="restart-button" class="ghost-button" type="button">
-              Restart
-            </button>
-          </div>
+          <section class="answer-dock" aria-label="Betekenissen">
+            <div class="dock-copy">
+              <p class="answer-eyebrow">Kies de juiste betekenis</p>
+              <p class="dock-text">
+                Lees de vier betekenissen hieronder en stuur het bord naar de
+                goede kolom.
+              </p>
+            </div>
+            <div class="lane-buttons" id="lane-buttons"></div>
+          </section>
 
-          <div class="touch-controls" aria-label="Touch controls">
-            <button id="left-button" class="touch-button" type="button">
-              Move left
-            </button>
-            <button id="right-button" class="touch-button" type="button">
-              Move right
-            </button>
-          </div>
+          <div class="controls-wrap">
+            <div class="controls-row">
+              <button id="start-button" class="primary-button" type="button">
+                Start
+              </button>
+              <button id="pause-button" class="ghost-button" type="button">
+                Pauze
+              </button>
+              <button id="restart-button" class="ghost-button" type="button">
+                Opnieuw
+              </button>
+            </div>
 
-          <div class="lane-buttons" id="lane-buttons"></div>
+            <div class="touch-controls" aria-label="Touch controls">
+              <button id="left-button" class="touch-button" type="button">
+                Naar links
+              </button>
+              <button id="right-button" class="touch-button" type="button">
+                Naar rechts
+              </button>
+            </div>
+          </div>
         </section>
-
-        <aside class="side-panel">
-          <section class="info-card">
-            <h2>How to play</h2>
-            <p>
-              A street sign falls from the top. Move it into the lane whose
-              Dutch description matches the sign.
-            </p>
-            <p>
-              Correct answers build your combo, the tempo speeds up, and the
-              beat gets wilder. Miss three and the set ends.
-            </p>
-          </section>
-
-          <section class="info-card">
-            <h2>Learning boost</h2>
-            <p>
-              This mix includes priority, parking, stop, no entry, crosswalk,
-              speed limit, one-way and more.
-            </p>
-            <div id="sign-legend" class="sign-legend"></div>
-          </section>
-        </aside>
       </main>
     </div>
 

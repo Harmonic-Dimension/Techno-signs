@@ -1,10 +1,10 @@
 const STORAGE_KEY = "techno-signs-best-score";
 const LANE_COUNT = 4;
-const CANVAS_WIDTH = 1080;
-const CANVAS_HEIGHT = 1440;
-const LANE_AREA_TOP = 120;
-const LANE_AREA_BOTTOM = 1210;
-const JUDGE_LINE_Y = 1110;
+const CANVAS_WIDTH = 1440;
+const CANVAS_HEIGHT = 900;
+const LANE_AREA_TOP = 110;
+const JUDGE_LINE_Y = 690;
+const laneAccents = ["#57d7ff", "#d7ff6c", "#ffb86b", "#ff6b9e"];
 
 const signs = [
   {
@@ -444,10 +444,13 @@ function updateLaneButtons() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "lane-button";
+    button.style.setProperty("--lane-accent", laneAccents[index]);
     if (state.activeSign && state.activeSign.laneIndex === index) {
       button.classList.add("is-selected");
     }
-    button.innerHTML = `${option.meaning}<small>Lane ${index + 1}</small>`;
+    button.innerHTML = `
+      <strong>${option.meaning}</strong>
+    `;
     button.addEventListener("click", () => {
       if (!state.activeSign) {
         return;
@@ -460,6 +463,10 @@ function updateLaneButtons() {
 }
 
 function renderLegend() {
+  if (!ui.signLegend) {
+    return;
+  }
+
   const featuredSigns = [
     "yield",
     "no-parking",
@@ -534,7 +541,7 @@ function resetGame() {
   state.activeSign = null;
   updateHud();
   prepareRound();
-  setFeedback("Press start to begin.");
+  setFeedback("Druk op start om te beginnen.");
 }
 
 function endGame() {
@@ -547,7 +554,7 @@ function endGame() {
   }
 
   updateHud();
-  setFeedback(`Einde set. Score ${state.score}. Druk op restart voor nog een ronde.`);
+  setFeedback(`Einde set. Score ${state.score}. Druk op opnieuw voor nog een ronde.`);
 }
 
 function handleHit() {
@@ -710,53 +717,33 @@ function drawJudgeLine() {
   ctx.restore();
 }
 
-function drawLaneCards() {
-  state.laneOptions.forEach((option, index) => {
-    const x = index * laneWidth() + 18;
-    const y = LANE_AREA_BOTTOM;
-    const width = laneWidth() - 36;
-    const height = 182;
+function drawLaneMarkers() {
+  state.laneOptions.forEach((_, index) => {
+    const centerX = laneCenterX(index);
+    const baseY = JUDGE_LINE_Y + 74;
     const selected = state.activeSign && state.activeSign.laneIndex === index;
     const flash = state.laneFlash[index];
+    const accent = laneAccents[index];
 
     ctx.save();
-    ctx.fillStyle = selected ? "rgba(255, 139, 61, 0.22)" : "rgba(10, 21, 39, 0.82)";
-    ctx.strokeStyle = flash > 0.01 ? `rgba(158,255,213,${0.55 * flash})` : "rgba(255,255,255,0.08)";
-    ctx.lineWidth = selected ? 5 : 3;
-    roundRect(ctx, x, y, width, height, 24);
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = selected ? "rgba(255,255,255,0.12)" : "rgba(8, 18, 38, 0.82)";
+    ctx.strokeStyle = flash > 0.01 ? `rgba(255,255,255,${0.25 + flash * 0.5})` : "rgba(255,255,255,0.06)";
+    ctx.lineWidth = selected ? 5 : 2;
+    roundRect(ctx, centerX - 138, baseY - 30, 276, 62, 24);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#f7fbff";
-    ctx.font = "700 34px 'Avenir Next', sans-serif";
-    wrapText(option.meaning, x + 20, y + 44, width - 40, 38);
+    ctx.fillStyle = accent;
+    roundRect(ctx, centerX - 128, baseY - 20, 256, 12, 8);
+    ctx.fill();
 
-    ctx.fillStyle = "rgba(164, 189, 210, 0.9)";
-    ctx.font = "600 22px 'Avenir Next', sans-serif";
-    ctx.fillText(`lane ${index + 1}`, x + 20, y + height - 24);
+    ctx.globalAlpha = selected ? 0.26 : 0.12;
+    ctx.fillStyle = accent;
+    roundRect(ctx, centerX - 118, baseY - 2, 236, 22, 12);
+    ctx.fill();
     ctx.restore();
   });
-}
-
-function wrapText(text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
-  let line = "";
-  let drawY = y;
-
-  words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      ctx.fillText(line, x, drawY);
-      line = word;
-      drawY += lineHeight;
-    } else {
-      line = testLine;
-    }
-  });
-
-  if (line) {
-    ctx.fillText(line, x, drawY);
-  }
 }
 
 function drawActiveSign() {
@@ -768,9 +755,9 @@ function drawActiveSign() {
 
   ctx.save();
   ctx.fillStyle = "#f7fbff";
-  ctx.font = "700 36px 'Avenir Next', sans-serif";
+  ctx.font = "700 34px 'Avenir Next', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Stuur het bord naar de juiste baan", CANVAS_WIDTH / 2, 110);
+  ctx.fillText("Stuur het bord naar de juiste betekenis", CANVAS_WIDTH / 2, 96);
   ctx.restore();
 }
 
@@ -783,7 +770,7 @@ function drawQueuePreview() {
   ctx.save();
   ctx.fillStyle = "rgba(164, 189, 210, 0.9)";
   ctx.font = "600 22px 'Avenir Next', sans-serif";
-  ctx.fillText("Next", 110, 48);
+  ctx.fillText("Hierna", 110, 48);
   ctx.restore();
 }
 
@@ -820,8 +807,8 @@ function drawGameOver() {
 
   ctx.fillStyle = "#ffd6a1";
   ctx.font = "600 42px 'Avenir Next', sans-serif";
-  ctx.fillText(`Final score: ${state.score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 8);
-  ctx.fillText("Tap restart for another round", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 78);
+  ctx.fillText(`Eindscore: ${state.score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 8);
+  ctx.fillText("Druk op opnieuw voor nog een ronde", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 78);
   ctx.restore();
 }
 
@@ -1100,7 +1087,7 @@ function drawFrame() {
   drawBackground();
   drawQueuePreview();
   drawJudgeLine();
-  drawLaneCards();
+  drawLaneMarkers();
   drawActiveSign();
   drawParticles();
   drawGameOver();
