@@ -74,6 +74,17 @@ const signs = [
     symbol: "priorityRoad",
   },
   {
+    id: "priority-road-end",
+    code: "B2",
+    meaning: "einde voorrangsweg",
+    hint: "Hier stopt de voorrangsweg.",
+    asset: "public/signs/B2.svg",
+    shape: "diamond",
+    theme: "#ffffff",
+    border: "#111f35",
+    symbol: "priorityRoadEnd",
+  },
+  {
     id: "danger-turn",
     code: "J3",
     meaning: "gevaarlijke bocht naar rechts",
@@ -107,6 +118,39 @@ const signs = [
     symbol: "roundabout",
   },
   {
+    id: "traffic-lights",
+    code: "J32",
+    meaning: "verkeerslichten",
+    hint: "Pas op voor stoplichten.",
+    asset: "public/signs/J32.svg",
+    shape: "triangle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "trafficLights",
+  },
+  {
+    id: "roadworks",
+    code: "J16",
+    meaning: "wegwerkzaamheden",
+    hint: "Let op, er wordt aan de weg gewerkt.",
+    asset: "public/signs/J16.svg",
+    shape: "triangle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "roadworks",
+  },
+  {
+    id: "children",
+    code: "J21",
+    meaning: "kinderen",
+    hint: "Pas op voor kinderen bij de weg.",
+    asset: "public/signs/J21.svg",
+    shape: "triangle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "children",
+  },
+  {
     id: "stop",
     code: "B7",
     meaning: "stop",
@@ -129,6 +173,28 @@ const signs = [
     symbol: "speed50",
   },
   {
+    id: "speed-30",
+    code: "A1-30",
+    meaning: "maximumsnelheid 30",
+    hint: "Harder dan 30 km/u mag niet.",
+    asset: "public/signs/A1-30.svg",
+    shape: "circle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "speed30",
+  },
+  {
+    id: "speed-80",
+    code: "A1-80",
+    meaning: "maximumsnelheid 80",
+    hint: "Harder dan 80 km/u mag niet.",
+    asset: "public/signs/A1-80.svg",
+    shape: "circle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "speed80",
+  },
+  {
     id: "one-way",
     code: "C3",
     meaning: "eenrichtingsweg",
@@ -138,6 +204,50 @@ const signs = [
     theme: "#1f60d0",
     border: "#ffffff",
     symbol: "oneWay",
+  },
+  {
+    id: "parking",
+    code: "E4",
+    meaning: "parkeren",
+    hint: "Hier mag je parkeren.",
+    asset: "public/signs/E4.svg",
+    shape: "square",
+    theme: "#1f60d0",
+    border: "#ffffff",
+    symbol: "parking",
+  },
+  {
+    id: "bike-path",
+    code: "G11",
+    meaning: "verplicht fietspad",
+    hint: "Fietsers moeten hier rijden.",
+    asset: "public/signs/G11.svg",
+    shape: "circle",
+    theme: "#1f60d0",
+    border: "#ffffff",
+    symbol: "bikePath",
+  },
+  {
+    id: "footpath",
+    code: "G7",
+    meaning: "voetpad",
+    hint: "Dit pad is voor voetgangers.",
+    asset: "public/signs/G7.svg",
+    shape: "circle",
+    theme: "#1f60d0",
+    border: "#ffffff",
+    symbol: "footpath",
+  },
+  {
+    id: "no-bicycles",
+    code: "C14",
+    meaning: "verboden voor fietsers",
+    hint: "Fietsen mag hier niet.",
+    asset: "public/signs/C14.svg",
+    shape: "circle",
+    theme: "#ffffff",
+    border: "#e2353a",
+    symbol: "noBicycles",
   },
 ];
 
@@ -187,6 +297,8 @@ class TechnoEngine {
   constructor() {
     this.context = null;
     this.masterGain = null;
+    this.musicGain = null;
+    this.sfxGain = null;
     this.noiseBuffer = null;
     this.nextStepTime = 0;
     this.stepIndex = 0;
@@ -202,7 +314,13 @@ class TechnoEngine {
       const AudioCtor = window.AudioContext || window.webkitAudioContext;
       this.context = new AudioCtor();
       this.masterGain = this.context.createGain();
-      this.masterGain.gain.value = 0.14;
+      this.musicGain = this.context.createGain();
+      this.sfxGain = this.context.createGain();
+      this.masterGain.gain.value = 0.18;
+      this.musicGain.gain.value = 0.78;
+      this.sfxGain.gain.value = 0.96;
+      this.musicGain.connect(this.masterGain);
+      this.sfxGain.connect(this.masterGain);
       this.masterGain.connect(this.context.destination);
       this.noiseBuffer = this.createNoiseBuffer();
     }
@@ -256,6 +374,10 @@ class TechnoEngine {
       this.playHiHat(time);
     }
 
+    if (step % 4 === 2) {
+      this.playOpenHat(time);
+    }
+
     const bassPattern = [
       55.0,
       55.0,
@@ -277,6 +399,50 @@ class TechnoEngine {
     if (step % 2 === 0) {
       this.playBass(time, bassPattern[step]);
     }
+
+    const stabPattern = [
+      null,
+      220.0,
+      null,
+      246.94,
+      null,
+      220.0,
+      null,
+      293.66,
+      null,
+      220.0,
+      null,
+      246.94,
+      null,
+      329.63,
+      null,
+      293.66,
+    ];
+    if (stabPattern[step]) {
+      this.playSynthStab(time, stabPattern[step]);
+    }
+
+    const sparklePattern = [
+      659.25,
+      null,
+      null,
+      587.33,
+      null,
+      659.25,
+      null,
+      783.99,
+      659.25,
+      null,
+      null,
+      587.33,
+      null,
+      880.0,
+      null,
+      783.99,
+    ];
+    if (sparklePattern[step]) {
+      this.playSparkleLead(time, sparklePattern[step], step % 8 === 7);
+    }
   }
 
   playKick(time) {
@@ -290,7 +456,7 @@ class TechnoEngine {
     gain.gain.exponentialRampToValueAtTime(0.8, time + 0.004);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.24);
 
-    osc.connect(gain).connect(this.masterGain);
+    osc.connect(gain).connect(this.musicGain);
     osc.start(time);
     osc.stop(time + 0.26);
   }
@@ -308,7 +474,7 @@ class TechnoEngine {
     gain.gain.exponentialRampToValueAtTime(0.22, time + 0.008);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.18);
 
-    source.connect(filter).connect(gain).connect(this.masterGain);
+    source.connect(filter).connect(gain).connect(this.musicGain);
     source.start(time);
     source.stop(time + 0.2);
   }
@@ -325,9 +491,26 @@ class TechnoEngine {
     gain.gain.exponentialRampToValueAtTime(0.09, time + 0.002);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.055);
 
-    source.connect(highpass).connect(gain).connect(this.masterGain);
+    source.connect(highpass).connect(gain).connect(this.musicGain);
     source.start(time);
     source.stop(time + 0.065);
+  }
+
+  playOpenHat(time) {
+    const source = this.context.createBufferSource();
+    const highpass = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+
+    source.buffer = this.noiseBuffer;
+    highpass.type = "highpass";
+    highpass.frequency.value = 6800;
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.05, time + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.18);
+
+    source.connect(highpass).connect(gain).connect(this.musicGain);
+    source.start(time);
+    source.stop(time + 0.2);
   }
 
   playBass(time, frequency) {
@@ -340,12 +523,127 @@ class TechnoEngine {
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(600, time);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(0.08, time + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.22);
+    gain.gain.exponentialRampToValueAtTime(0.095, time + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.26);
 
-    osc.connect(filter).connect(gain).connect(this.masterGain);
+    osc.connect(filter).connect(gain).connect(this.musicGain);
     osc.start(time);
-    osc.stop(time + 0.24);
+    osc.stop(time + 0.28);
+  }
+
+  playSynthStab(time, frequency) {
+    const oscA = this.context.createOscillator();
+    const oscB = this.context.createOscillator();
+    const filter = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+
+    oscA.type = "triangle";
+    oscB.type = "sawtooth";
+    oscA.frequency.setValueAtTime(frequency, time);
+    oscB.frequency.setValueAtTime(frequency * 1.003, time);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1800, time);
+    filter.frequency.exponentialRampToValueAtTime(520, time + 0.32);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(0.05, time + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.35);
+
+    oscA.connect(filter);
+    oscB.connect(filter);
+    filter.connect(gain).connect(this.musicGain);
+    oscA.start(time);
+    oscB.start(time);
+    oscA.stop(time + 0.36);
+    oscB.stop(time + 0.36);
+  }
+
+  playSparkleLead(time, frequency, accent = false) {
+    const osc = this.context.createOscillator();
+    const tremolo = this.context.createOscillator();
+    const tremoloGain = this.context.createGain();
+    const filter = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(frequency, time);
+    tremolo.type = "sine";
+    tremolo.frequency.setValueAtTime(accent ? 9 : 7, time);
+    tremoloGain.gain.setValueAtTime(accent ? 18 : 10, time);
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(accent ? 2200 : 1800, time);
+    filter.Q.value = 1.4;
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(accent ? 0.04 : 0.025, time + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.16);
+
+    tremolo.connect(tremoloGain);
+    tremoloGain.connect(osc.frequency);
+    osc.connect(filter).connect(gain).connect(this.musicGain);
+    osc.start(time);
+    tremolo.start(time);
+    osc.stop(time + 0.18);
+    tremolo.stop(time + 0.18);
+  }
+
+  playSuccess() {
+    if (!this.context) {
+      return;
+    }
+
+    const now = this.context.currentTime;
+    [783.99, 987.77, 1174.66].forEach((frequency, index) => {
+      const osc = this.context.createOscillator();
+      const filter = this.context.createBiquadFilter();
+      const gain = this.context.createGain();
+      const start = now + index * 0.05;
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(frequency, start);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2200, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(index === 2 ? 0.12 : 0.09, start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+
+      osc.connect(filter).connect(gain).connect(this.sfxGain);
+      osc.start(start);
+      osc.stop(start + 0.24);
+    });
+  }
+
+  playFailure() {
+    if (!this.context) {
+      return;
+    }
+
+    const now = this.context.currentTime;
+    const source = this.context.createBufferSource();
+    const bandpass = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+    const osc = this.context.createOscillator();
+    const oscGain = this.context.createGain();
+
+    source.buffer = this.noiseBuffer;
+    bandpass.type = "bandpass";
+    bandpass.frequency.setValueAtTime(420, now);
+    bandpass.Q.value = 1.6;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(196, now);
+    osc.frequency.exponentialRampToValueAtTime(116.54, now + 0.24);
+    oscGain.gain.setValueAtTime(0.0001, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.07, now + 0.01);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
+
+    source.connect(bandpass).connect(gain).connect(this.sfxGain);
+    osc.connect(oscGain).connect(this.sfxGain);
+    source.start(now);
+    source.stop(now + 0.28);
+    osc.start(now);
+    osc.stop(now + 0.26);
   }
 }
 
@@ -559,6 +857,7 @@ function endGame() {
 
 function handleHit() {
   const previousMeaning = state.activeSign.sign.meaning;
+  techno.playSuccess();
   state.combo += 1;
   state.correct += 1;
   state.score += 100 + (state.combo - 1) * 20 + state.level * 10;
@@ -573,6 +872,7 @@ function handleHit() {
 
 function handleMiss() {
   const correctMeaning = state.activeSign.sign.meaning;
+  techno.playFailure();
   state.combo = 0;
   state.lives -= 1;
   state.laneFlash[state.laneTargetIndex] = 1;
@@ -626,7 +926,7 @@ function updateGame(deltaSeconds) {
     return;
   }
 
-  const baseSpeed = 290 + (state.level - 1) * 42;
+  const baseSpeed = 150 + (state.level - 1) * 20;
   state.activeSign.y += baseSpeed * deltaSeconds;
   state.activeSign.x += (laneCenterX(state.activeSign.laneIndex) - state.activeSign.x) * Math.min(1, deltaSeconds * 12);
   state.activeSign.spin += deltaSeconds * 0.5;
