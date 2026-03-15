@@ -261,6 +261,7 @@ const ui = {
   tempo: document.querySelector("#tempo"),
   feedback: document.querySelector("#feedback"),
   startButton: document.querySelector("#start-button"),
+  audioButton: document.querySelector("#audio-button"),
   pauseButton: document.querySelector("#pause-button"),
   restartButton: document.querySelector("#restart-button"),
   leftButton: document.querySelector("#left-button"),
@@ -291,6 +292,7 @@ const state = {
   beatFlash: 0,
   laneFlash: Array.from({ length: LANE_COUNT }, () => 0),
   lastTimestamp: 0,
+  audioMuted: false,
 };
 
 class TechnoEngine {
@@ -299,6 +301,7 @@ class TechnoEngine {
     this.masterGain = null;
     this.musicGain = null;
     this.sfxGain = null;
+    this.compressor = null;
     this.noiseBuffer = null;
     this.nextStepTime = 0;
     this.stepIndex = 0;
@@ -316,12 +319,19 @@ class TechnoEngine {
       this.masterGain = this.context.createGain();
       this.musicGain = this.context.createGain();
       this.sfxGain = this.context.createGain();
-      this.masterGain.gain.value = 0.18;
+      this.compressor = this.context.createDynamicsCompressor();
+      this.compressor.threshold.value = -22;
+      this.compressor.knee.value = 20;
+      this.compressor.ratio.value = 3;
+      this.compressor.attack.value = 0.003;
+      this.compressor.release.value = 0.18;
+      this.masterGain.gain.value = state.audioMuted ? 0 : 0.22;
       this.musicGain.gain.value = 0.78;
-      this.sfxGain.gain.value = 0.96;
+      this.sfxGain.gain.value = 1.05;
       this.musicGain.connect(this.masterGain);
       this.sfxGain.connect(this.masterGain);
-      this.masterGain.connect(this.context.destination);
+      this.masterGain.connect(this.compressor);
+      this.compressor.connect(this.context.destination);
       this.noiseBuffer = this.createNoiseBuffer();
     }
 
@@ -330,6 +340,14 @@ class TechnoEngine {
     }
 
     this.nextStepTime = this.context.currentTime + 0.05;
+  }
+
+  setMuted(muted) {
+    state.audioMuted = muted;
+    if (this.masterGain && this.context) {
+      this.masterGain.gain.cancelScheduledValues(this.context.currentTime);
+      this.masterGain.gain.setTargetAtTime(muted ? 0 : 0.22, this.context.currentTime, 0.03);
+    }
   }
 
   createNoiseBuffer() {
@@ -648,6 +666,27 @@ class TechnoEngine {
 }
 
 const techno = new TechnoEngine();
+
+function updateAudioButton() {
+  if (!ui.audioButton) {
+    return;
+  }
+
+  if (!techno.context || techno.context.state !== "running") {
+    ui.audioButton.textContent = "Geluid starten";
+  } else {
+    ui.audioButton.textContent = state.audioMuted ? "Geluid aan" : "Geluid uit";
+  }
+  ui.audioButton.setAttribute("aria-pressed", `${!state.audioMuted}`);
+}
+
+async function ensureAudioReady() {
+  await techno.start();
+  if (!state.audioMuted) {
+    techno.setMuted(false);
+  }
+  updateAudioButton();
+}
 
 function shuffle(items) {
   const copy = [...items];
@@ -1405,15 +1444,26 @@ function animate(timestamp) {
 
 function bindEvents() {
   ui.startButton.addEventListener("click", async () => {
-    await techno.start();
+    await ensureAudioReady();
     startGame();
+  });
+
+  ui.audioButton.addEventListener("click", async () => {
+    const wasReady = techno.context && techno.context.state === "running";
+    await ensureAudioReady();
+    if (wasReady) {
+      techno.setMuted(!state.audioMuted);
+    } else {
+      techno.setMuted(false);
+    }
+    updateAudioButton();
   });
 
   ui.pauseButton.addEventListener("click", async () => {
     if (state.running) {
       pauseGame();
     } else if (!state.gameOver) {
-      await techno.start();
+      await ensureAudioReady();
       startGame();
     }
   });
@@ -1424,6 +1474,13 @@ function bindEvents() {
 
   ui.leftButton.addEventListener("click", () => moveActiveSign(-1));
   ui.rightButton.addEventListener("click", () => moveActiveSign(1));
+
+  const unlockAudioOnce = async () => {
+    await ensureAudioReady();
+  };
+
+  document.addEventListener("pointerdown", unlockAudioOnce, { once: true });
+  document.addEventListener("touchstart", unlockAudioOnce, { once: true, passive: true });
 
   window.addEventListener("keydown", async (event) => {
     if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
@@ -1441,7 +1498,7 @@ function bindEvents() {
       if (state.running) {
         pauseGame();
       } else if (!state.gameOver) {
-        await techno.start();
+        await ensureAudioReady();
         startGame();
       }
     }
@@ -1451,10 +1508,17 @@ function bindEvents() {
       resetGame();
     }
   });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.running && techno.context && techno.context.state === "suspended") {
+      ensureAudioReady();
+    }
+  });
 }
 
 preloadSignImages();
 renderLegend();
+updateAudioButton();
 resetGame();
 bindEvents();
 requestAnimationFrame(animate);
