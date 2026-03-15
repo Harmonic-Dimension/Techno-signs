@@ -701,6 +701,10 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function isCompactViewport() {
+  return window.innerWidth <= 760 || (window.innerWidth <= 932 && window.innerHeight <= 500);
+}
+
 function laneWidth() {
   return CANVAS_WIDTH / LANE_COUNT;
 }
@@ -1057,29 +1061,34 @@ function drawJudgeLine() {
 }
 
 function drawLaneMarkers() {
+  const compact = isCompactViewport();
   state.laneOptions.forEach((_, index) => {
     const centerX = laneCenterX(index);
-    const baseY = JUDGE_LINE_Y + 74;
+    const baseY = compact ? JUDGE_LINE_Y + 58 : JUDGE_LINE_Y + 74;
     const selected = state.activeSign && state.activeSign.laneIndex === index;
     const flash = state.laneFlash[index];
     const accent = laneAccents[index];
+    const outerWidth = compact ? 248 : 276;
+    const outerHeight = compact ? 46 : 62;
+    const innerWidth = compact ? 228 : 256;
+    const fillWidth = compact ? 210 : 236;
 
     ctx.save();
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = selected ? "rgba(255,255,255,0.12)" : "rgba(8, 18, 38, 0.82)";
     ctx.strokeStyle = flash > 0.01 ? `rgba(255,255,255,${0.25 + flash * 0.5})` : "rgba(255,255,255,0.06)";
     ctx.lineWidth = selected ? 5 : 2;
-    roundRect(ctx, centerX - 138, baseY - 30, 276, 62, 24);
+    roundRect(ctx, centerX - outerWidth / 2, baseY - outerHeight / 2, outerWidth, outerHeight, 22);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = accent;
-    roundRect(ctx, centerX - 128, baseY - 20, 256, 12, 8);
+    roundRect(ctx, centerX - innerWidth / 2, baseY - 18, innerWidth, compact ? 9 : 12, 8);
     ctx.fill();
 
     ctx.globalAlpha = selected ? 0.26 : 0.12;
     ctx.fillStyle = accent;
-    roundRect(ctx, centerX - 118, baseY - 2, 236, 22, 12);
+    roundRect(ctx, centerX - fillWidth / 2, baseY - 1, fillWidth, compact ? 16 : 22, 12);
     ctx.fill();
     ctx.restore();
   });
@@ -1092,6 +1101,10 @@ function drawActiveSign() {
 
   drawSign(ctx, state.activeSign.sign, state.activeSign.x, state.activeSign.y, state.activeSign.size);
 
+  if (isCompactViewport()) {
+    return;
+  }
+
   ctx.save();
   ctx.fillStyle = "#f7fbff";
   ctx.font = "700 34px 'Avenir Next', sans-serif";
@@ -1101,6 +1114,10 @@ function drawActiveSign() {
 }
 
 function drawQueuePreview() {
+  if (isCompactViewport()) {
+    return;
+  }
+
   const preview = state.queue.slice(0, 3);
   preview.forEach((sign, index) => {
     drawSign(ctx, sign, 110 + index * 92, 110, 62);
