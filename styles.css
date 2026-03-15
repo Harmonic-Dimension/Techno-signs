@@ -327,45 +327,11 @@ button:active {
 }
 
 .legend-sign {
-  width: 28px;
-  height: 28px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
-  position: relative;
-}
-
-.legend-sign.circle {
-  border-radius: 999px;
-}
-
-.legend-sign.square {
-  border-radius: 7px;
-}
-
-.legend-sign.triangle {
-  width: 0;
-  height: 0;
-  border-left: 16px solid transparent;
-  border-right: 16px solid transparent;
-  border-bottom: 28px solid currentColor;
-  background: transparent;
-}
-
-.legend-sign.diamond {
-  transform: rotate(45deg);
-  border-radius: 5px;
-}
-
-.legend-sign.octagon {
-  clip-path: polygon(
-    30% 0%,
-    70% 0%,
-    100% 30%,
-    100% 70%,
-    70% 100%,
-    30% 100%,
-    0% 70%,
-    0% 30%
-  );
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.18));
 }
 
 .legend-copy strong {

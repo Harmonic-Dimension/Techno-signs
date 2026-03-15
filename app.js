@@ -9,8 +9,10 @@ const JUDGE_LINE_Y = 1110;
 const signs = [
   {
     id: "yield",
+    code: "B6",
     meaning: "voorrang verlenen",
     hint: "Geef andere weggebruikers eerst voorrang.",
+    asset: "public/signs/B6.svg",
     shape: "triangle",
     theme: "#ffffff",
     border: "#e2353a",
@@ -18,8 +20,10 @@ const signs = [
   },
   {
     id: "no-parking",
+    code: "E1",
     meaning: "niet parkeren",
     hint: "Je mag hier niet parkeren.",
+    asset: "public/signs/E1.svg",
     shape: "circle",
     theme: "#1f60d0",
     border: "#e2353a",
@@ -27,8 +31,10 @@ const signs = [
   },
   {
     id: "no-stopping",
+    code: "E2",
     meaning: "niet stilstaan",
     hint: "Niet stoppen of wachten.",
+    asset: "public/signs/E2.svg",
     shape: "circle",
     theme: "#1f60d0",
     border: "#e2353a",
@@ -36,8 +42,10 @@ const signs = [
   },
   {
     id: "straight",
+    code: "D4",
     meaning: "verplicht rechtdoor",
     hint: "Je moet hier rechtdoor rijden.",
+    asset: "public/signs/D4.svg",
     shape: "circle",
     theme: "#1f60d0",
     border: "#ffffff",
@@ -45,8 +53,10 @@ const signs = [
   },
   {
     id: "no-entry",
+    code: "C2",
     meaning: "verboden in te rijden",
-    hint: "Je mag deze weg niet in.",
+    hint: "Je mag deze weg niet inrijden.",
+    asset: "public/signs/C2.svg",
     shape: "circle",
     theme: "#db2f35",
     border: "#ffffff",
@@ -54,8 +64,10 @@ const signs = [
   },
   {
     id: "priority-road",
+    code: "B1",
     meaning: "voorrangsweg",
     hint: "Deze weg heeft voorrang bij kruisingen.",
+    asset: "public/signs/B1.svg",
     shape: "diamond",
     theme: "#ffd54a",
     border: "#ffffff",
@@ -63,8 +75,10 @@ const signs = [
   },
   {
     id: "danger-turn",
-    meaning: "gevaarlijke bocht",
-    hint: "Pas op voor een scherpe bocht.",
+    code: "J3",
+    meaning: "gevaarlijke bocht naar rechts",
+    hint: "Pas op, de weg buigt naar rechts.",
+    asset: "public/signs/J3.svg",
     shape: "triangle",
     theme: "#ffffff",
     border: "#e2353a",
@@ -72,8 +86,10 @@ const signs = [
   },
   {
     id: "crosswalk",
+    code: "L2",
     meaning: "voetgangersoversteekplaats",
     hint: "Let op overstekende voetgangers.",
+    asset: "public/signs/L2.svg",
     shape: "square",
     theme: "#1f60d0",
     border: "#ffffff",
@@ -81,8 +97,10 @@ const signs = [
   },
   {
     id: "roundabout",
+    code: "D1",
     meaning: "rotonde",
     hint: "Het verkeer rijdt in een rondje.",
+    asset: "public/signs/D1.svg",
     shape: "circle",
     theme: "#1f60d0",
     border: "#ffffff",
@@ -90,8 +108,10 @@ const signs = [
   },
   {
     id: "stop",
+    code: "B7",
     meaning: "stop",
     hint: "Je moet helemaal stoppen.",
+    asset: "public/signs/B7.svg",
     shape: "octagon",
     theme: "#db2f35",
     border: "#ffffff",
@@ -99,8 +119,10 @@ const signs = [
   },
   {
     id: "speed-50",
+    code: "A1-50",
     meaning: "maximumsnelheid 50",
     hint: "Harder dan 50 km/u mag niet.",
+    asset: "public/signs/A1-50.svg",
     shape: "circle",
     theme: "#ffffff",
     border: "#e2353a",
@@ -108,8 +130,10 @@ const signs = [
   },
   {
     id: "one-way",
-    meaning: "eenrichtingsverkeer",
-    hint: "Verkeer mag maar een kant op.",
+    code: "C3",
+    meaning: "eenrichtingsweg",
+    hint: "Verkeer gaat hier maar een kant op.",
+    asset: "public/signs/C3.svg",
     shape: "square",
     theme: "#1f60d0",
     border: "#ffffff",
@@ -136,6 +160,7 @@ const ui = {
 };
 
 const ctx = ui.canvas.getContext("2d");
+const signImages = new Map();
 
 const state = {
   running: false,
@@ -450,36 +475,27 @@ function renderLegend() {
   featuredSigns.forEach((sign) => {
     const row = document.createElement("div");
     row.className = "legend-row";
-    const icon = document.createElement("div");
-    icon.className = `legend-sign ${sign.shape}`;
-    icon.style.color = sign.border;
-    if (sign.shape !== "triangle") {
-      icon.style.background = sign.theme;
-      icon.style.border = `3px solid ${sign.border}`;
-    }
-    if (sign.shape === "diamond") {
-      icon.style.background = sign.theme;
-      icon.style.border = `3px solid ${sign.border}`;
-    }
-    if (sign.id === "priority-road") {
-      icon.style.boxShadow = "0 0 0 4px #111f35 inset";
-    }
-    if (sign.id === "stop") {
-      icon.textContent = "STOP";
-      icon.style.fontSize = "0.45rem";
-      icon.style.display = "grid";
-      icon.style.placeItems = "center";
-      icon.style.fontWeight = "700";
-      icon.style.background = sign.theme;
-      icon.style.border = `3px solid ${sign.border}`;
-    }
+    const icon = document.createElement("img");
+    icon.className = "legend-sign";
+    icon.src = sign.asset;
+    icon.alt = `Verkeersbord ${sign.code}`;
+    icon.loading = "lazy";
 
     const copy = document.createElement("div");
     copy.className = "legend-copy";
-    copy.innerHTML = `<strong>${sign.meaning}</strong><span>${sign.hint}</span>`;
+    copy.innerHTML = `<strong>${sign.meaning}</strong><span>${sign.code} · ${sign.hint}</span>`;
 
     row.append(icon, copy);
     ui.signLegend.appendChild(row);
+  });
+}
+
+function preloadSignImages() {
+  signs.forEach((sign) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = sign.asset;
+    signImages.set(sign.id, image);
   });
 }
 
@@ -820,6 +836,12 @@ function roundRect(context, x, y, width, height, radius) {
 }
 
 function drawSign(context, sign, x, y, size) {
+  const image = signImages.get(sign.id);
+  if (image && image.complete && image.naturalWidth > 0) {
+    drawSignImage(context, image, x, y, size);
+    return;
+  }
+
   context.save();
   context.translate(x, y);
   context.shadowColor = "rgba(0,0,0,0.28)";
@@ -844,6 +866,34 @@ function drawSign(context, sign, x, y, size) {
       break;
   }
 
+  context.restore();
+}
+
+function drawSignImage(context, image, x, y, size) {
+  const aspectRatio = image.naturalWidth / image.naturalHeight || 1;
+  const targetHeight = size;
+  const targetWidth = size * aspectRatio;
+  const maxDimension = size * 1.18;
+  let drawWidth = targetWidth;
+  let drawHeight = targetHeight;
+
+  if (drawWidth > maxDimension) {
+    const scale = maxDimension / drawWidth;
+    drawWidth *= scale;
+    drawHeight *= scale;
+  }
+
+  if (drawHeight > maxDimension) {
+    const scale = maxDimension / drawHeight;
+    drawWidth *= scale;
+    drawHeight *= scale;
+  }
+
+  context.save();
+  context.shadowColor = "rgba(0,0,0,0.28)";
+  context.shadowBlur = 28;
+  context.shadowOffsetY = 10;
+  context.drawImage(image, x - drawWidth / 2, y - drawHeight / 2, drawWidth, drawHeight);
   context.restore();
 }
 
@@ -1116,6 +1166,7 @@ function bindEvents() {
   });
 }
 
+preloadSignImages();
 renderLegend();
 resetGame();
 bindEvents();
